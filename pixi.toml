@@ -35,6 +35,7 @@ vs2017_win-64 = ">=19.16.27033,<20"
 
 [tasks]
 test = "python -m pytest tests/ || python tests/test.py"
+speedtest = "python tests/speedtest.py"
 
 [feature.lint.tasks]
 lint = "python -m pylint polytri.py || echo 'pylint not installed'"

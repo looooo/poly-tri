@@ -22,17 +22,19 @@ jobs:
         run: pixi install
 
       - name: Build
-        run: pixi run --feature build build
+        run: pixi run build
 
       - name: Lint Python
-        run: pixi run --feature lint lint
+        run: pixi run lint
 
       - name: Lint Rust
-        run: pixi run --feature build lint-rust
+        run: pixi run lint-rust
 
       - name: Test Rust
-        run: pixi run --feature build test-rust
+        run: pixi run test-rust
 
       - name: Test Python
         run: pixi run test
 
+      - name: Speedtest
+        run: pixi run speedtest
