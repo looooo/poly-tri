@@ -9,7 +9,6 @@ This module provides a Delaunay triangulation implementation that supports:
 Based on: https://code.activestate.com/recipes/579021-delaunay-triangulation/
 """
 import numpy as np
-import copy
 import math
 
 
@@ -27,10 +26,6 @@ def _make_edge_key(i1, i2):
     if i1 < i2:
         return (i1, i2)
     return (i2, i1)
-
-
-# Backward compatibility alias
-make_key = _make_edge_key
 
 
 class PolyTri(object):
@@ -57,19 +52,45 @@ class PolyTri(object):
     """
     
     EPS = 1.23456789e-14  # Numerical epsilon for floating point comparisons
-    small = EPS  # Backward compatibility alias
 
     def __init__(self, points, boundaries=None, delaunay=True, holes=True, border=None):
         if border is None:
             border = []
+        
+        # Validate inputs
+        points = np.asarray(points, dtype=np.float64)
+        if points.ndim != 2 or points.shape[1] != 2:
+            raise ValueError("points must be a 2D array with shape (N, 2)")
+        if len(points) < 3:
+            raise ValueError("At least 3 points are required for triangulation")
+        
+        if boundaries is not None:
+            if not isinstance(boundaries, (list, tuple)):
+                raise TypeError("boundaries must be a list or tuple")
+            for i, boundary in enumerate(boundaries):
+                if not isinstance(boundary, (list, tuple, np.ndarray)):
+                    raise TypeError(f"boundary {i} must be a list, tuple, or array")
+                boundary = np.asarray(boundary)
+                if boundary.ndim != 1:
+                    raise ValueError(f"boundary {i} must be 1D")
+                if len(boundary) < 2:
+                    raise ValueError(f"boundary {i} must have at least 2 points")
+                # Check if boundary indices are valid
+                if len(boundary) > 0:
+                    max_idx = boundary.max()
+                    if max_idx >= len(points):
+                        raise ValueError(f"boundary {i} contains invalid point indices (max index {max_idx} >= {len(points)} points)")
+                    min_idx = boundary.min()
+                    if min_idx < 0:
+                        raise ValueError(f"boundary {i} contains negative point indices")
             
         # Store original parameters
-        self._delaunay = delaunay
+        self._delaunay = bool(delaunay)
         self._boundaries = boundaries
-        self._border = border
+        self._border = list(border) if border else []
         
         # Internal data structures
-        self._points = np.array(points, dtype=np.float64)
+        self._points = points
         self._triangles = []  # List of triangles (each is list of 3 point indices)
         self._edge_to_triangles = {}  # edge -> list of triangle indices
         self._point_to_triangles = {}  # point index -> set of triangle indices
@@ -79,12 +100,11 @@ class PolyTri(object):
         self._point_order = None
         self._point_unorder = None
         
-        # Public API properties (with backward compatibility)
-        self.pts = self._points  # Backward compatibility
-        self.tris = self._triangles  # Backward compatibility
-        self.edge2tris = self._edge_to_triangles  # Backward compatibility
-        self.pnt2tris = self._point_to_triangles  # Backward compatibility
-        self.boundary_edges = self._boundary_edges  # Backward compatibility
+        # Cache for triangles property
+        self._triangles_cache = None
+        
+        # Public API properties
+        self.boundary_edges = self._boundary_edges
         self.delaunay = self._delaunay
         self.boundaries = self._boundaries
         self.border = self._border
@@ -118,11 +138,6 @@ class PolyTri(object):
         self._point_order = np.array([idx for _, idx in points_with_indices])
         self._point_unorder = np.argsort(self._point_order)
         
-        # Update backward compatibility references
-        self.pts = self._points
-        self.order = self._point_order
-        self.unorder = self._point_unorder
-        
         # Create first triangle, removing collinear points
         index = 0
         while index + 2 < len(self._points):
@@ -132,9 +147,6 @@ class PolyTri(object):
                 self._points = np.delete(self._points, index, axis=0)
                 self._point_order = np.delete(self._point_order, index)
                 self._point_unorder = np.argsort(self._point_order)
-                self.pts = self._points
-                self.order = self._point_order
-                self.unorder = self._point_unorder
             else:
                 break
         
@@ -146,7 +158,7 @@ class PolyTri(object):
         triangle = [index, index + 1, index + 2]
         self._ensure_counter_clockwise(triangle)
         self._triangles.append(triangle)
-        self.tris = self._triangles
+        self._triangles_cache = None  # Invalidate cache
         
         # Initialize boundary edges
         e01 = (triangle[0], triangle[1])
@@ -166,11 +178,9 @@ class PolyTri(object):
         self._edge_to_triangles[e01_key] = [0]
         self._edge_to_triangles[e12_key] = [0]
         self._edge_to_triangles[e20_key] = [0]
-        self.edge2tris = self._edge_to_triangles
         
         for i in triangle:
             self._point_to_triangles[i] = {0}
-        self.pnt2tris = self._point_to_triangles
         
         # Add remaining points
         for i in range(3, len(self._points)):
@@ -178,7 +188,6 @@ class PolyTri(object):
         
         # Update unorder mapping
         self._point_unorder = np.argsort(self._point_order)
-        self.unorder = self._point_unorder
 
     @property
     def points(self):
@@ -188,7 +197,13 @@ class PolyTri(object):
     @property
     def triangles(self):
         """Get triangles as arrays of original point indices."""
-        return [np.array([self._point_order[i] for i in tri]) for tri in self._triangles]
+        # Cache triangles to avoid recreating arrays on every access
+        if self._triangles_cache is None or len(self._triangles_cache) != len(self._triangles):
+            self._triangles_cache = [
+                np.array([self._point_order[i] for i in tri]) 
+                for tri in self._triangles
+            ]
+        return self._triangles_cache
     
     def get_triangles(self):
         """
@@ -198,10 +213,6 @@ class PolyTri(object):
             List of numpy arrays, each containing 3 point indices.
         """
         return self.triangles
-    
-    def get_tris(self):
-        """Backward compatibility alias for get_triangles()."""
-        return [self._point_order[tri] for tri in self._triangles]
 
     def _compute_triangle_area(self, i0, i1, i2):
         """
@@ -218,10 +229,6 @@ class PolyTri(object):
         d1 = self._points[i1] - self._points[i0]
         d2 = self._points[i2] - self._points[i0]
         return d1[0] * d2[1] - d1[1] * d2[0]
-    
-    def get_area(self, i0, i1, i2):
-        """Backward compatibility alias for _compute_triangle_area()."""
-        return self._compute_triangle_area(i0, i1, i2)
 
     def _is_visible_from_edge(self, point_idx, edge):
         """
@@ -236,10 +243,6 @@ class PolyTri(object):
         """
         area = self._compute_triangle_area(point_idx, edge[0], edge[1])
         return area < self.EPS
-    
-    def is_edge_visible(self, point_idx, edge):
-        """Backward compatibility alias for _is_visible_from_edge()."""
-        return self._is_visible_from_edge(point_idx, edge)
 
     def _ensure_counter_clockwise(self, triangle_indices):
         """
@@ -254,10 +257,6 @@ class PolyTri(object):
         if area < -self.EPS:
             # Swap last two vertices
             triangle_indices[1], triangle_indices[2] = triangle_indices[2], triangle_indices[1]
-    
-    def make_counter_clockwise(self, triangle_indices):
-        """Backward compatibility alias for _ensure_counter_clockwise()."""
-        self._ensure_counter_clockwise(triangle_indices)
 
     def _constrain_edge(self, edge):
         """
@@ -274,17 +273,24 @@ class PolyTri(object):
         
         pt0, pt1 = edge
         
+        # Validate edge endpoints
+        if pt0 not in self._point_to_triangles or pt1 not in self._point_to_triangles:
+            raise ValueError(f"Edge endpoints ({pt0}, {pt1}) are not valid point indices")
+        
         # Find first intersecting edge
         intersecting_edge = None
         for tri_idx in self._point_to_triangles.get(pt1, set()):
             tri_vertices = list(self._triangles[tri_idx])
-            tri_vertices.remove(pt1)
-            candidate_edge = _make_edge_key(*tri_vertices)
-            if self._edges_intersect(candidate_edge, edge_key):
-                intersecting_edge = candidate_edge
-                break
+            if pt1 in tri_vertices:
+                tri_vertices.remove(pt1)
+                if len(tri_vertices) == 2:
+                    candidate_edge = _make_edge_key(*tri_vertices)
+                    if self._edges_intersect(candidate_edge, edge_key):
+                        intersecting_edge = candidate_edge
+                        break
         
         if intersecting_edge is None:
+            # Edge might already be constrained or no intersection found
             return
         
         # Flip edges until constraint is satisfied
@@ -314,10 +320,6 @@ class PolyTri(object):
                     # Recursively constrain sub-edges
                     self._constrain_edge(_make_edge_key(intersecting_edge[0], pt0))
                     self._constrain_edge(_make_edge_key(pt0, pt1))
-    
-    def constraint_edge(self, edge):
-        """Backward compatibility alias for _constrain_edge()."""
-        self._constrain_edge(edge)
 
     def _flip_edge(self, edge, enforce_delaunay=True, check_intersection=False):
         """
@@ -380,6 +382,7 @@ class PolyTri(object):
         
         self._triangles[tri1_idx] = new_tri1
         self._triangles[tri2_idx] = new_tri2
+        self._triangles_cache = None  # Invalidate cache
         
         # Update edge mappings
         del self._edge_to_triangles[edge]
@@ -428,12 +431,6 @@ class PolyTri(object):
         result_edges.add(_make_edge_key(opposite2, edge[1]))
         
         return result_edges
-    
-    def flipOneEdge(self, edge, delaunay=True, check_self_intersection=False):
-        """Backward compatibility alias for _flip_edge()."""
-        return self._flip_edge(edge, 
-                              enforce_delaunay=delaunay,
-                              check_intersection=check_self_intersection)
 
     def flip_edges(self):
         """Flip all edges to satisfy Delaunay criterion."""
@@ -458,12 +455,12 @@ class PolyTri(object):
         
         for edge in self._boundary_edges:
             if self._is_visible_from_edge(point_idx, edge):
-                # Create new triangle
+                # Create new triangle (order doesn't matter, will be fixed by ensure_counter_clockwise)
                 new_triangle = [edge[0], edge[1], point_idx]
-                new_triangle.sort()
                 self._ensure_counter_clockwise(new_triangle)
                 self._triangles.append(new_triangle)
                 tri_idx = len(self._triangles) - 1
+                self._triangles_cache = None  # Invalidate cache
                 
                 # Update edge mappings
                 e0 = _make_edge_key(*edge)
@@ -495,19 +492,9 @@ class PolyTri(object):
             if len(self._edge_to_triangles.get(edge_key, [])) == 1:
                 self._boundary_edges.add(edge)
         
-        # Update backward compatibility references
-        self.tris = self._triangles
-        self.edge2tris = self._edge_to_triangles
-        self.pnt2tris = self._point_to_triangles
-        self.boundary_edges = self._boundary_edges
-        
         # Enforce Delaunay criterion if requested
         if self._delaunay:
             self.flip_edges()
-    
-    def add_point(self, point_idx):
-        """Backward compatibility alias for _add_point()."""
-        self._add_point(point_idx)
 
     def _create_boundary_list(self, border_indices=None, create_key=True):
         """
@@ -520,10 +507,14 @@ class PolyTri(object):
         Returns:
             List of boundary edges
         """
+        if self._boundaries is None:
+            return []
+        
         boundary_edges = []
         for k, boundary in enumerate(self._boundaries):
             if border_indices and k not in border_indices:
                 continue
+            boundary = np.asarray(boundary)
             boundary_original = self._point_unorder[boundary]
             for i, j in zip(boundary_original[:-1], boundary_original[1:]):
                 if create_key:
@@ -531,20 +522,12 @@ class PolyTri(object):
                 else:
                     boundary_edges.append((i, j))
         return boundary_edges
-    
-    def create_boundary_list(self, border=None, create_key=True):
-        """Backward compatibility alias for _create_boundary_list()."""
-        return self._create_boundary_list(border, create_key)
 
     def constrain_boundaries(self):
         """Constrain all specified boundaries."""
         boundary_edges = self._create_boundary_list()
         for edge in boundary_edges:
             self._constrain_edge(edge)
-    
-    def constraint_boundaries(self):
-        """Backward compatibility alias for constrain_boundaries()."""
-        return self.constrain_boundaries()
 
     def _update_mappings(self):
         """Rebuild edge-to-triangle and point-to-triangle mappings."""
@@ -562,13 +545,15 @@ class PolyTri(object):
                     self._point_to_triangles[point_idx] = set()
                 self._point_to_triangles[point_idx].add(tri_idx)
         
-        # Update backward compatibility references
-        self.edge2tris = self._edge_to_triangles
-        self.pnt2tris = self._point_to_triangles
-    
-    def update_mapping(self):
-        """Backward compatibility alias for _update_mappings()."""
-        self._update_mappings()
+        # Update boundary edges based on edge-to-triangle mapping
+        # Boundary edges are edges that belong to exactly one triangle
+        new_boundary_edges = set()
+        for edge, triangles in self._edge_to_triangles.items():
+            if len(triangles) == 1:
+                # Convert edge key back to tuple for boundary_edges
+                new_boundary_edges.add(edge)
+        self._boundary_edges = new_boundary_edges
+        self.boundary_edges = self._boundary_edges
 
     def remove_empty_triangles(self):
         """Remove triangles with zero or near-zero area."""
@@ -579,16 +564,11 @@ class PolyTri(object):
             if abs(area) < self.EPS:
                 triangles_to_remove.append(i)
         
-        triangles_to_remove.sort(reverse=True)
-        for i in triangles_to_remove:
-            self._triangles.pop(i)
-        
-        # Update backward compatibility reference
-        self.tris = self._triangles
-    
-    def remove_empty(self):
-        """Backward compatibility alias for remove_empty_triangles()."""
-        self.remove_empty_triangles()
+        if triangles_to_remove:
+            triangles_to_remove.sort(reverse=True)
+            for i in triangles_to_remove:
+                self._triangles.pop(i)
+            self._triangles_cache = None  # Invalidate cache
 
     def _triangle_to_edges(self, triangle, create_key=True):
         """
@@ -606,10 +586,6 @@ class PolyTri(object):
             return [_make_edge_key(*edge) for edge in zip(triangle_cyclic[:-1], triangle_cyclic[1:])]
         else:
             return [tuple(edge) for edge in zip(triangle_cyclic[:-1], triangle_cyclic[1:])]
-    
-    def tri2edges(self, triangle, create_key=True):
-        """Backward compatibility alias for _triangle_to_edges()."""
-        return self._triangle_to_edges(triangle, create_key)
 
     def _edges_intersect(self, edge1, edge2):
         """
@@ -641,13 +617,12 @@ class PolyTri(object):
             return (0 < c1 < 1) and (0 < c2 < 1)
         except np.linalg.LinAlgError:
             return False
-    
-    def is_intersecting(self, edge1, edge2):
-        """Backward compatibility alias for _edges_intersect()."""
-        return self._edges_intersect(edge1, edge2)
 
     def remove_holes(self):
         """Remove triangles inside holes defined by boundaries."""
+        if self._boundaries is None:
+            return
+        
         boundary_keys = self._create_boundary_list(self._border, create_key=True)
         boundary_tuples = self._create_boundary_list(self._border, create_key=False)
         
@@ -688,9 +663,8 @@ class PolyTri(object):
             prev_count = len(triangles_to_remove)
         
         # Remove triangles in reverse order
-        triangles_to_remove = sorted(triangles_to_remove, reverse=True)
-        for i in triangles_to_remove:
-            self._triangles.pop(i)
-        
-        # Update backward compatibility reference
-        self.tris = self._triangles
+        if triangles_to_remove:
+            triangles_to_remove = sorted(triangles_to_remove, reverse=True)
+            for i in triangles_to_remove:
+                self._triangles.pop(i)
+            self._triangles_cache = None  # Invalidate cache
