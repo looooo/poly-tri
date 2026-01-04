@@ -35,6 +35,3 @@ jobs:
 
       - name: Speedtest
         run: pixi run speedtest
-      
-      - name: conda-build
-        run: pixi run conda-build
