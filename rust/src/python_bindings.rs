@@ -17,7 +17,7 @@ use crate::polytri::{Boundary, Point, PolyTri};
 // ============================================================================
 
 /// Konvertiert Python-Array (numpy oder list) zu Vec<Point>
-pub fn points_from_python(_py: Python, points: &PyAny) -> PyResult<Vec<Point>> {
+pub fn points_from_python(_py: Python, points: &Bound<'_, PyAny>) -> PyResult<Vec<Point>> {
     // Unterstützt numpy.ndarray
     if let Ok(array) = points.downcast::<PyArray2<f64>>() {
         let array = array.readonly();
@@ -89,7 +89,7 @@ pub fn points_to_python(py: Python, points: &[Point]) -> Py<PyArray2<f64>> {
 }
 
 /// Konvertiert Python-Boundaries (list of lists) zu Vec<Boundary>
-pub fn boundaries_from_python(boundaries: &PyAny) -> PyResult<Option<Vec<Boundary>>> {
+pub fn boundaries_from_python(boundaries: &Bound<'_, PyAny>) -> PyResult<Option<Vec<Boundary>>> {
     if boundaries.is_none() {
         return Ok(None);
     }
@@ -181,7 +181,7 @@ pub fn triangles_to_python(py: Python, triangles: &[[usize; 3]]) -> PyResult<PyO
 }
 
 /// Konvertiert Python border (list oder None) zu Option<Vec<usize>>
-pub fn border_from_python(border: &PyAny) -> PyResult<Option<Vec<usize>>> {
+pub fn border_from_python(border: &Bound<'_, PyAny>) -> PyResult<Option<Vec<usize>>> {
     if border.is_none() {
         return Ok(None);
     }
@@ -219,11 +219,11 @@ impl PyPolyTri {
     #[pyo3(signature = (points, boundaries=None, delaunay=true, holes=true, border=None))]
     fn new(
         py: Python,
-        points: &PyAny,
-        boundaries: Option<&PyAny>,
+        points: &Bound<'_, PyAny>,
+        boundaries: Option<&Bound<'_, PyAny>>,
         delaunay: bool,
         holes: bool,
-        border: Option<&PyAny>,
+        border: Option<&Bound<'_, PyAny>>,
     ) -> PyResult<Self> {
         // Konvertiere Python-Input zu Rust-Typen
         let rust_points = points_from_python(py, points)?;
