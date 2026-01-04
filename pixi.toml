@@ -19,6 +19,7 @@ maturin = "*"
 rust = "*"
 pip = "*"
 pylint = "*"
+conda-build = "*"
 
 [target.linux.dependencies]
 clang = "*"
@@ -39,6 +40,8 @@ lint-rust = { cmd = "cd rust && cargo clippy" }
 clean = { cmd = "cd rust && cargo clean && rm -rf target/ dist/ *.egg-info" }
 test = { cmd = "python -m pytest tests/ || python tests/test.py", depends-on = ["build"]}
 speedtest = { cmd = "python tests/speedtest.py", depends-on = ["build"]}
+conda-build = { cmd = "conda build conda-pkg -c conda-forge"}
+conda-build-test = { cmd = "conda build conda-pkg --test" }
 
 [activation]
 env.CARGO_TARGET_DIR = "rust/target/pixi"
