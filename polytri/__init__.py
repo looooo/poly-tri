@@ -81,3 +81,6 @@ def is_python_available():
 # Add these to __all__ as well
 __all__.extend(["get_implementation", "is_rust_available", "is_python_available"])
 
+# Version
+__version__ = "0.1.1"
+
