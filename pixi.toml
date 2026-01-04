@@ -29,16 +29,16 @@ make = "*"
 vs2017_win-64 = "*"
 
 [tasks]
-test = "python -m pytest tests/ || python tests/test.py"
-speedtest = "python tests/speedtest.py"
 lint = "python -m pylint polytri.py || echo 'pylint not installed'"
 build-debug = "cd rust && maturin develop --features python"
-build = "cd rust && maturin develop --release --features python"
+build = "cd rust && maturin build --release --features python"
 check = "cd rust && cargo check"
 test-rust = "cd rust && cargo test"
 fmt = "cd rust && cargo fmt"
 lint-rust = "cd rust && cargo clippy"
 clean = "cd rust && cargo clean && rm -rf target/ dist/ *.egg-info"
+test = "python -m pytest tests/ || python tests/test.py"
+speedtest = "python tests/speedtest.py"
 
 [activation]
 env.CARGO_TARGET_DIR = "rust/target/pixi"
