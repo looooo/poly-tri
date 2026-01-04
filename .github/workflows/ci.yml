@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Pixi
+        uses: prefix-dev/setup-pixi@v0.9.0
+        with:
+          pixi-version: latest
+
+      - name: Install dependencies
+        run: pixi install
+
+      - name: Build
+        run: pixi run --feature build build
+
+      - name: Lint Python
+        run: pixi run --feature lint lint
+
+      - name: Lint Rust
+        run: pixi run --feature build lint-rust
+
+      - name: Test Rust
+        run: pixi run --feature build test-rust
+
+      - name: Test Python
+        run: pixi run test
+
