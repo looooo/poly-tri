@@ -5,11 +5,14 @@ Dieses Package bietet sowohl eine Rust-Implementierung (schneller) als auch eine
 ## Verwendung
 
 ```python
-from polytri import PolyTri
+from polytri import PolyTri, PolyTriPy
 
-# Verwendet automatisch die Rust-Version, falls verfügbar
+# Standard: Verwendet automatisch die Rust-Version, falls verfügbar
 # Andernfalls wird die Python-Version verwendet
 tri = PolyTri(points, boundaries=boundaries, delaunay=True)
+
+# Explizit Python-Version verwenden
+tri_py = PolyTriPy(points, boundaries=boundaries, delaunay=True)
 ```
 
 ## Version-Auswahl
@@ -19,9 +22,23 @@ Das Package wählt automatisch die beste verfügbare Implementierung:
 1. **Rust-Version** (Standard, falls verfügbar): Schneller, kompiliert
 2. **Python-Version** (Fallback): Reine Python-Implementierung
 
-### Manuelle Auswahl
+### Explizite Auswahl
 
-Sie können die Implementierung mit der Umgebungsvariable `POLYTRI_USE_RUST` steuern:
+```python
+# Rust-Version (Standard, falls verfügbar)
+from polytri import PolyTri
+
+# Python-Version (explizit)
+from polytri import PolyTriPy
+
+# Oder direkt importieren
+from polytri._rust import PolyTri as RustPolyTri  # Nur wenn verfügbar
+from polytri._python import PolyTri as PythonPolyTri  # Immer verfügbar
+```
+
+### Manuelle Auswahl über Umgebungsvariable
+
+Sie können die Standard-Implementierung mit der Umgebungsvariable `POLYTRI_USE_RUST` steuern:
 
 ```bash
 # Rust-Version erzwingen (falls verfügbar)
@@ -34,18 +51,14 @@ POLYTRI_USE_RUST=0 python script.py
 POLYTRI_USE_RUST=auto python script.py
 ```
 
-### Programmgesteuerte Auswahl
+### Programmgesteuerte Prüfung
 
 ```python
-from polytri import PolyTri, get_implementation, is_rust_available
+from polytri import PolyTri, PolyTriPy, get_implementation, is_rust_available
 
 # Prüfen, welche Version verwendet wird
 print("Aktuelle Implementierung:", get_implementation())
 print("Rust verfügbar:", is_rust_available())
-
-# Beide Versionen können auch direkt importiert werden
-from polytri._rust import PolyTri as RustPolyTri  # Nur wenn verfügbar
-from polytri._python import PolyTri as PythonPolyTri  # Immer verfügbar
 ```
 
 ## API

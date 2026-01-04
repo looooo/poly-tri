@@ -33,9 +33,11 @@ vs2017_win-64 = ">=19.16.27033,<20"
 test = "python -m pytest tests/ || python tests/test.py"
 lint = "python -m pylint polytri.py || echo 'pylint not installed'"
 
+[feature.rust]
+
 [feature.build.tasks]
-build-debug = "maturin develop"
-build-release = "maturin develop --release"
+build-debug = "cd rust && maturin develop --features python"
+build = "cd rust && maturin develop --release --features python"
 check = "cd rust && cargo check"
 test-rust = "cd rust && cargo test"
 fmt = "cd rust && cargo fmt"
@@ -44,6 +46,7 @@ clean = "cd rust && cargo clean && rm -rf target/ dist/ *.egg-info"
 
 [feature.build.activation]
 env.CARGO_TARGET_DIR = "rust/target/pixi"
+env.PYO3_USE_ABI3_FORWARD_COMPATIBILITY = "1"
 
 [environments]
 default = { features = ["build", "rust"], solve-group = "default" }

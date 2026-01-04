@@ -6,7 +6,10 @@ import sys
 import os
 import time
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')  # Non-interactive backend
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -87,7 +90,7 @@ def plot_comparison(test_name, pts, python_tri, rust_tri, annotate_points=False,
         boundaries: Boundaries used (for display)
         border: Border indices used (for display)
     """
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10))
     
     # Build parameter string
     params = []
@@ -177,9 +180,29 @@ def plot_comparison(test_name, pts, python_tri, rust_tri, annotate_points=False,
         ax2.set_title('Rust Implementation (not available)', fontsize=12)
     
     plt.tight_layout()
-    plt.show()
+    return fig  # Return figure instead of showing
 
 class TriangleTests(unittest.TestCase):
+    figures = []  # Liste zum Sammeln aller Figures
+    
+    @classmethod
+    def setUpClass(cls):
+        """Wird einmal vor allen Tests aufgerufen"""
+        cls.figures = []
+    
+    @classmethod
+    def tearDownClass(cls):
+        """Wird einmal nach allen Tests aufgerufen - speichert PDF"""
+        if cls.figures:
+            pdf_path = os.path.join(os.path.dirname(__file__), 'test_results.pdf')
+            with PdfPages(pdf_path) as pdf:
+                for fig in cls.figures:
+                    pdf.savefig(fig, bbox_inches='tight')
+                    plt.close(fig)
+            print(f"\n✓ Alle Test-Ergebnisse wurden in '{pdf_path}' gespeichert")
+            print(f"  ({len(cls.figures)} Seiten)")
+        cls.figures = []
+    
     @property
     def an_int(self):
         return np.random.randint(9, 50)
@@ -216,9 +239,10 @@ class TriangleTests(unittest.TestCase):
         else:
             rust_tri = None
         
-        plot_comparison('test_constraint_edge', pts, python_tri, rust_tri, 
+        fig = plot_comparison('test_constraint_edge', pts, python_tri, rust_tri, 
                        annotate_points=True, python_time=python_time, rust_time=rust_time,
                        delaunay=False, holes=False, boundaries=cb)
+        self.__class__.figures.append(fig)
 
     def test_constraint_edge_1(self):
         n = self.an_int
@@ -251,9 +275,10 @@ class TriangleTests(unittest.TestCase):
         else:
             rust_tri = None
         
-        plot_comparison('test_constraint_edge_1', pts, python_tri, rust_tri,
+        fig = plot_comparison('test_constraint_edge_1', pts, python_tri, rust_tri,
                        python_time=python_time, rust_time=rust_time,
                        delaunay=False, holes=True, boundaries=cb, border=[0, 1])
+        self.__class__.figures.append(fig)
 
 
     def test_constraint_edge_2(self):
@@ -281,9 +306,10 @@ class TriangleTests(unittest.TestCase):
         else:
             rust_tri = None
         
-        plot_comparison('test_constraint_edge_2', pts, python_tri, rust_tri,
+        fig = plot_comparison('test_constraint_edge_2', pts, python_tri, rust_tri,
                        python_time=python_time, rust_time=rust_time,
                        delaunay=False, holes=True, boundaries=boundaries)
+        self.__class__.figures.append(fig)
 
     def test_easy3(self):
         pts =np.array([
@@ -309,9 +335,10 @@ class TriangleTests(unittest.TestCase):
         else:
             rust_tri = None
         
-        plot_comparison('test_easy3', pts, python_tri, rust_tri,
+        fig = plot_comparison('test_easy3', pts, python_tri, rust_tri,
                        python_time=python_time, rust_time=rust_time,
                        delaunay=False, holes=False, boundaries=None)
+        self.__class__.figures.append(fig)
        
 
     def test_easy_1(self):
@@ -337,9 +364,10 @@ class TriangleTests(unittest.TestCase):
         else:
             rust_tri = None
         
-        plot_comparison('test_easy_1', pts, python_tri, rust_tri,
+        fig = plot_comparison('test_easy_1', pts, python_tri, rust_tri,
                        python_time=python_time, rust_time=rust_time,
                        delaunay=True, holes=False, boundaries=None)
+        self.__class__.figures.append(fig)
 
 
     def test_easy_2(self):
@@ -361,9 +389,10 @@ class TriangleTests(unittest.TestCase):
         else:
             rust_tri = None
         
-        plot_comparison('test_easy_2', pts, python_tri, rust_tri,
+        fig = plot_comparison('test_easy_2', pts, python_tri, rust_tri,
                        python_time=python_time, rust_time=rust_time,
                        delaunay=False, holes=False, boundaries=edge)
+        self.__class__.figures.append(fig)
 
 
     def test_easy_3(self):
@@ -385,9 +414,10 @@ class TriangleTests(unittest.TestCase):
         else:
             rust_tri = None
         
-        plot_comparison('test_easy_3', pts, python_tri, rust_tri,
+        fig = plot_comparison('test_easy_3', pts, python_tri, rust_tri,
                        python_time=python_time, rust_time=rust_time,
                        delaunay=False, holes=False, boundaries=None)
+        self.__class__.figures.append(fig)
 
     def test_ellipse(self):
         outer_pts = np.array([np.cos(self.phi), np.sin(self.phi)]).T
@@ -412,9 +442,10 @@ class TriangleTests(unittest.TestCase):
         else:
             rust_tri = None
         
-        plot_comparison('test_ellipse', pts, python_tri, rust_tri,
+        fig = plot_comparison('test_ellipse', pts, python_tri, rust_tri,
                        python_time=python_time, rust_time=rust_time,
                        delaunay=True, holes=True, boundaries=boundaries)
+        self.__class__.figures.append(fig)
 
 
     def test_profile(self):
@@ -473,9 +504,10 @@ class TriangleTests(unittest.TestCase):
         else:
             rust_tri = None
         
-        plot_comparison('test_profile', pts, python_tri, rust_tri, annotate_points=True,
+        fig = plot_comparison('test_profile', pts, python_tri, rust_tri, annotate_points=True,
                        python_time=python_time, rust_time=rust_time,
                        delaunay=False, holes=False, boundaries=boundaries)
+        self.__class__.figures.append(fig)
     
 
     def test_profile2(self):
@@ -564,9 +596,10 @@ class TriangleTests(unittest.TestCase):
         else:
             rust_tri = None
         
-        plot_comparison('test_profile2', pts, python_tri, rust_tri,
+        fig = plot_comparison('test_profile2', pts, python_tri, rust_tri,
                        python_time=python_time, rust_time=rust_time,
                        delaunay=False, holes=True, boundaries=boundaries)
+        self.__class__.figures.append(fig)
 
 
     def test_profile3(self):
@@ -640,9 +673,10 @@ class TriangleTests(unittest.TestCase):
         else:
             rust_tri = None
         
-        plot_comparison('test_profile3', pts, python_tri, rust_tri,
+        fig = plot_comparison('test_profile3', pts, python_tri, rust_tri,
                        python_time=python_time, rust_time=rust_time,
                        delaunay=True, holes=True, boundaries=boundaries)
+        self.__class__.figures.append(fig)
 
 if __name__ == '__main__':
     unittest.main()

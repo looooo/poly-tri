@@ -6,10 +6,14 @@ This package provides both a Rust implementation (faster) and a Python implement
 to the Python implementation.
 
 Usage:
-    from polytri import PolyTri
+    from polytri import PolyTri  # Uses Rust version by default
+    from polytri import PolyTriPy  # Explicitly use Python version
     
-    # Uses Rust version if available, otherwise Python version
+    # Default (Rust if available, otherwise Python)
     tri = PolyTri(points, boundaries=boundaries, delaunay=True)
+    
+    # Explicitly use Python version
+    tri_py = PolyTriPy(points, boundaries=boundaries, delaunay=True)
 """
 
 import os
@@ -29,14 +33,17 @@ if _USE_RUST in ("auto", "1", "true", "yes"):
 elif _USE_RUST in ("0", "false", "no"):
     _rust_available = False
 
-# Import Python version (always available as fallback)
+# Import Python version (always available)
 try:
     from polytri._python import PolyTri as PythonPolyTri
     _python_available = True
+    # Export Python version as PolyTriPy
+    PolyTriPy = PythonPolyTri
 except ImportError:
     _python_available = False
+    PolyTriPy = None
 
-# Determine which version to use
+# Determine which version to use as default
 if _rust_available:
     PolyTri = RustPolyTri
     _implementation = "rust"
@@ -49,8 +56,14 @@ else:
         "Please ensure polytri._python is available."
     )
 
-# Export the selected implementation
-__all__ = ["PolyTri", "_implementation", "_rust_available", "_python_available"]
+# Export the implementations
+__all__ = [
+    "PolyTri",  # Default implementation (Rust if available, else Python)
+    "PolyTriPy",  # Python implementation (explicit)
+    "_implementation",
+    "_rust_available",
+    "_python_available",
+]
 
 # Provide information about which implementation is being used
 def get_implementation():
