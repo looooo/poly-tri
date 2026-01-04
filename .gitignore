@@ -1,10 +1,13 @@
 # Rust
 rust/target/
+rust/**/target/
+rust/rust/target/
 rust/Cargo.lock
 **/*.rs.bk
 
 # Python
 __pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
 *.so
@@ -14,12 +17,30 @@ dist/
 build/
 .eggs/
 
+# Test outputs
+tests/*.pdf
+tests/test_results.pdf
+
+# Pixi
+.pixi/
+# pixi.lock should be committed (like Cargo.lock for binaries)
+
+# Compiled Rust modules
+polytri/_rust*.so
+polytri/*.so
+
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*.sublime-*
 
 # OS
 .DS_Store
 Thumbs.db
+*~
+
+# Temporary files
+*.tmp
+*.log
