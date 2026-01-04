@@ -205,7 +205,7 @@ class TriangleTests(unittest.TestCase):
     
     @property
     def an_int(self):
-        return np.random.randint(9, 50)
+        return np.random.randint(30, 200)
 
     def setUp(self):
         self.phi = np.linspace(0, 2 * np.pi, self.an_int)[:-1]
@@ -216,8 +216,8 @@ class TriangleTests(unittest.TestCase):
         y = np.array([0] * n)
         pts = np.array([x, y]).T
         pts_upper = pts[1:-1].copy()
-        pts_upper[:,1] += 0.1
-        pts[1:-1, 1] -= 0.1
+        pts_upper[:,1] += 0.5
+        pts[1:-1, 1] -= 0.5
         cb = [[0, n-1]]
         additional_pts = np.array([[-1., 0], [2, 0.]])
         pts = np.array(list(pts) + list(pts_upper) + list(additional_pts))
@@ -432,13 +432,13 @@ class TriangleTests(unittest.TestCase):
         
         if _python_available:
             python_tri, python_time = measure_triangulation_time(
-                PythonPolyTri, pts, boundaries, delaunay=False, holes=True)
+                PythonPolyTri, pts, boundaries, delaunay=True, holes=True)
         else:
             python_tri = None
         
         if _rust_available:
             rust_tri, rust_time = measure_triangulation_time(
-                RustPolyTri, pts, boundaries, delaunay=False, holes=True)
+                RustPolyTri, pts, boundaries, delaunay=True, holes=True)
         else:
             rust_tri = None
         

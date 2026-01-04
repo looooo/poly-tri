@@ -89,6 +89,9 @@ class PolyTri(object):
         self._boundaries = boundaries
         self._border = list(border) if border else []
         
+        # Store original points (before sorting)
+        self._original_points = points.copy()
+        
         # Internal data structures
         self._points = points
         self._triangles = []  # List of triangles (each is list of 3 point indices)
@@ -187,8 +190,10 @@ class PolyTri(object):
 
     @property
     def points(self):
-        """Get the points array."""
-        return self._points
+        """Get the points array in original order (not sorted)."""
+        # Return original points in original order
+        # The internal _points are sorted, but triangles use original indices
+        return self._original_points
     
     @property
     def triangles(self):

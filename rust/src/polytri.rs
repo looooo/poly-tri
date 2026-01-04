@@ -75,7 +75,8 @@ pub enum PolyTriError {
 
 pub struct PolyTri {
     // Eingabeparameter
-    points: Vec<Point>,                // Sortierte Punkte
+    original_points: Vec<Point>,       // Ursprüngliche Punkte (vor Sortierung)
+    points: Vec<Point>,                 // Sortierte Punkte (intern verwendet)
     boundaries: Option<Vec<Boundary>>, // Optionale Boundaries
     delaunay: bool,                    // Delaunay-Kriterium aktiviert?
     holes: bool,                       // Hole removal aktiviert?
@@ -1099,8 +1100,12 @@ impl PolyTri {
             }
         }
 
+        // Speichere ursprüngliche Punkte (vor Sortierung)
+        let original_points = points.clone();
+
         // Erstelle PolyTri-Instanz
         let mut polytri = PolyTri {
+            original_points: original_points.clone(),
             points,
             boundaries,
             delaunay,
@@ -1132,9 +1137,9 @@ impl PolyTri {
         Ok(polytri)
     }
 
-    /// Gibt die Punkte zurück (als Referenz)
+    /// Gibt die Punkte zurück in ursprünglicher Reihenfolge (nicht sortiert)
     pub fn points(&self) -> &[Point] {
-        &self.points
+        &self.original_points
     }
 
     /// Gibt Dreiecke als Arrays von originalen Punkt-Indizes zurück
