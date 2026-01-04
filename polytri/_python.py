@@ -100,9 +100,6 @@ class PolyTri(object):
         self._point_order = None
         self._point_unorder = None
         
-        # Cache for triangles property
-        self._triangles_cache = None
-        
         # Public API properties
         self.boundary_edges = self._boundary_edges
         self.delaunay = self._delaunay
@@ -158,7 +155,6 @@ class PolyTri(object):
         triangle = [index, index + 1, index + 2]
         self._ensure_counter_clockwise(triangle)
         self._triangles.append(triangle)
-        self._triangles_cache = None  # Invalidate cache
         
         # Initialize boundary edges
         e01 = (triangle[0], triangle[1])
@@ -197,13 +193,10 @@ class PolyTri(object):
     @property
     def triangles(self):
         """Get triangles as arrays of original point indices."""
-        # Cache triangles to avoid recreating arrays on every access
-        if self._triangles_cache is None or len(self._triangles_cache) != len(self._triangles):
-            self._triangles_cache = [
-                np.array([self._point_order[i] for i in tri]) 
-                for tri in self._triangles
-            ]
-        return self._triangles_cache
+        return [
+            np.array([self._point_order[i] for i in tri]) 
+            for tri in self._triangles
+        ]
     
     def get_triangles(self):
         """
@@ -382,7 +375,6 @@ class PolyTri(object):
         
         self._triangles[tri1_idx] = new_tri1
         self._triangles[tri2_idx] = new_tri2
-        self._triangles_cache = None  # Invalidate cache
         
         # Update edge mappings
         del self._edge_to_triangles[edge]
@@ -460,7 +452,6 @@ class PolyTri(object):
                 self._ensure_counter_clockwise(new_triangle)
                 self._triangles.append(new_triangle)
                 tri_idx = len(self._triangles) - 1
-                self._triangles_cache = None  # Invalidate cache
                 
                 # Update edge mappings
                 e0 = _make_edge_key(*edge)
@@ -568,7 +559,6 @@ class PolyTri(object):
             triangles_to_remove.sort(reverse=True)
             for i in triangles_to_remove:
                 self._triangles.pop(i)
-            self._triangles_cache = None  # Invalidate cache
 
     def _triangle_to_edges(self, triangle, create_key=True):
         """
@@ -667,4 +657,3 @@ class PolyTri(object):
             triangles_to_remove = sorted(triangles_to_remove, reverse=True)
             for i in triangles_to_remove:
                 self._triangles.pop(i)
-            self._triangles_cache = None  # Invalidate cache

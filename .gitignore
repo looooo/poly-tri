@@ -1,55 +1,25 @@
-#ignore dot files:
-.*
-!.gitignore
-!.travis.yml
+# Rust
+rust/target/
+rust/Cargo.lock
+**/*.rs.bk
 
-#python compiled
-*.py[cod~]
-
-# C extensions
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
 *.so
-*.lyx
-
-# Packages
 *.egg
-*.egg-info
-dist
-build
-eggs
-parts
-bin
-var
-sdist
-develop-eggs
-.installed.cfg
-lib
-lib64
+*.egg-info/
+dist/
+build/
+.eggs/
 
-# Installer logs
-pip-log.txt
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
 
-# Unit test / coverage reports
-.coverage
-.tox
-nosetests.
-
-#intellij
-*.iml
-
-# Translations
-*.mo
-
-# Mr Developer
-.mr.developer.cfg
-.project
-.pydevproject
-
-# lock-files
-*~
-
-# Doxygen generated Doc
-# Doc/doxygen/*
-docs/sphinx/build/*
-examples
-#scripts
-__pycache__*
+# OS
+.DS_Store
+Thumbs.db

@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from polytri import PolyTri
 
 ul = [[1, 2, 3, 4, 0, 1]]
