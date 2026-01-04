@@ -1,0 +1,18 @@
+[project]
+name = "poly-tri"
+version = "0.0"
+description = "triangolosierer"
+channels = ["conda-forge"]
+platforms = ["linux-64", "osx-64", "osx-arm64", "win-64"]
+
+[dependencies]
+python = ">=3.8"
+numpy = "*"
+
+[dev-dependencies]
+matplotlib = "*"
+
+[tasks]
+test = "python -m pytest tests/ || python tests/test.py"
+lint = "python -m pylint polytri.py || echo 'pylint not installed'"
+
