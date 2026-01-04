@@ -20,22 +20,18 @@ rust = "*"
 pip = "*"
 pylint = "*"
 
-[feature.build.target.linux.dependencies]
+[target.linux.dependencies]
 clang = "*"
 compilers = "*"
 make = "*"
 
-[feature.build.target.win-64.dependencies]
+[target.win-64.dependencies]
 vs2017_win-64 = "*"
 
 [tasks]
 test = "python -m pytest tests/ || python tests/test.py"
 speedtest = "python tests/speedtest.py"
-
-[feature.lint.tasks]
 lint = "python -m pylint polytri.py || echo 'pylint not installed'"
-
-[feature.build.tasks]
 build-debug = "cd rust && maturin develop --features python"
 build = "cd rust && maturin develop --release --features python"
 check = "cd rust && cargo check"
@@ -44,11 +40,6 @@ fmt = "cd rust && cargo fmt"
 lint-rust = "cd rust && cargo clippy"
 clean = "cd rust && cargo clean && rm -rf target/ dist/ *.egg-info"
 
-[feature.build.activation]
+[activation]
 env.CARGO_TARGET_DIR = "rust/target/pixi"
 env.PYO3_USE_ABI3_FORWARD_COMPATIBILITY = "1"
-
-[environments]
-build = { features = ["build"]}
-lint = { features = ["lint"]}
-
