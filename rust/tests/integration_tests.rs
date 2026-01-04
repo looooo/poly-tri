@@ -16,24 +16,7 @@ fn points_from_array(arr: &[[f64; 2]]) -> Vec<Point> {
     arr.iter().map(|[x, y]| Point { x: *x, y: *y }).collect()
 }
 
-/// Normalisiert ein Dreieck (sortiert die Indizes)
-fn normalize_triangle(tri: &[usize; 3]) -> [usize; 3] {
-    let mut sorted = [tri[0], tri[1], tri[2]];
-    sorted.sort();
-    sorted
-}
-
-/// Prüft ob zwei Dreieck-Listen gleich sind (unabhängig von Reihenfolge)
-fn triangle_lists_equal(tris1: &[[usize; 3]], tris2: &[[usize; 3]]) -> bool {
-    if tris1.len() != tris2.len() {
-        return false;
-    }
-    let mut norm1: Vec<[usize; 3]> = tris1.iter().map(|t| normalize_triangle(t)).collect();
-    let mut norm2: Vec<[usize; 3]> = tris2.iter().map(|t| normalize_triangle(t)).collect();
-    norm1.sort();
-    norm2.sort();
-    norm1 == norm2
-}
+// Helper functions removed - not currently used in tests
 
 // ============================================================================
 // BASIC TRIANGULATION TESTS
@@ -179,7 +162,7 @@ fn test_constraint_edge_2() {
         Some(vec![0]),
     )
     .unwrap();
-    let triangles = tri.get_triangles();
+    let _triangles = tri.get_triangles();
 
     // Hole removal kann alle Dreiecke entfernen, wenn alles innerhalb des Boundaries liegt
     // Daher prüfen wir nur, dass die Funktion erfolgreich war
@@ -247,7 +230,7 @@ fn test_hole_removal() {
     inner_boundary.push(0); // Schließe den inneren Boundary
     let mut outer_boundary: Vec<usize> = (n..2 * n).collect();
     outer_boundary.push(n); // Schließe den äußeren Boundary
-    let boundaries = Some(vec![inner_boundary.clone(), outer_boundary.clone()]);
+    let _boundaries = Some(vec![inner_boundary.clone(), outer_boundary.clone()]);
 
     // Test ohne hole removal zuerst
     let tri_no_holes = PolyTri::new(
@@ -278,7 +261,7 @@ fn test_hole_removal() {
     // Hole removal sollte erfolgreich sein (auch wenn alle Dreiecke entfernt werden)
     match tri_result {
         Ok(tri) => {
-            let triangles = tri.get_triangles();
+            let _triangles = tri.get_triangles();
             // Es ist möglich, dass hole removal alle Dreiecke entfernt
             // wenn die Geometrie ungünstig ist, daher prüfen wir nur auf Erfolg
             // assert!(!triangles.is_empty(), "Should have triangles after hole removal");
