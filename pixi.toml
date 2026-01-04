@@ -31,7 +31,7 @@ vs2017_win-64 = "*"
 [tasks]
 lint = { cmd = "python -m pylint polytri.py || echo 'pylint not installed'" }
 build-debug = { cmd = "cd rust && maturin develop --features python" }
-build = { cmd = "cd rust && maturin build --release --features python" }
+build = { cmd = "cd rust && maturin develop --release --features python" }
 check = { cmd = "cd rust && cargo check" }
 test-rust = { cmd = "cd rust && cargo test" }
 fmt = { cmd = "cd rust && cargo fmt" }
