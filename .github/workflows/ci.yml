@@ -21,9 +21,6 @@ jobs:
       - name: Install dependencies
         run: pixi install
 
-      - name: Build
-        run: pixi run build
-
       - name: Lint Python
         run: pixi run lint
 
