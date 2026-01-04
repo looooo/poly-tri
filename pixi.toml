@@ -24,6 +24,11 @@ rust-src = ">=1.90.0,<2"
 maturin = ">=1.11.0,<2"
 rust = ">=1.90.0,<1.91"
 pip = ">=25.3,<26"
+# Python dependencies for testing
+python = ">=3.8"
+numpy = "*"
+matplotlib = "*"
+pytest = "*"
 
 [feature.build.target.linux.dependencies]
 clang = ">=21.1.2,<22"
@@ -54,6 +59,6 @@ env.CARGO_TARGET_DIR = "rust/target/pixi"
 env.PYO3_USE_ABI3_FORWARD_COMPATIBILITY = "1"
 
 [environments]
-build = { features = ["build"], no-default-feature = true }
-lint = { features = ["lint"], no-default-feature = true }
+build = { features = ["build"]}
+lint = { features = ["lint"]}
 

@@ -86,11 +86,10 @@ def benchmark_triangulation(impl_class, points, boundaries=None, border=None,
     for _ in range(num_runs):
         try:
             start = time.perf_counter()
-            tri = impl_class(points, delaunay=delaunay)
-            if boundaries is not None:
-                tri.constrain_boundaries(boundaries)
-            if border is not None:
-                tri.remove_holes(border=border)
+            # Pass boundaries and border to constructor, not to methods
+            # remove_holes() is called automatically if holes=True and boundaries are provided
+            tri = impl_class(points, boundaries=boundaries, delaunay=delaunay, 
+                           holes=(border is not None), border=border)
             _ = tri.get_triangles()  # Force computation
             elapsed = time.perf_counter() - start
             times.append(elapsed)
