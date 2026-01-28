@@ -24,7 +24,14 @@ jobs:
       - name: Install dependencies
         run: pixi install
 
+      - name: Set UTF-8 encoding (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: cmd
+        run: chcp 65001
+
       - name: Lint Python
+        env:
+          PYTHONIOENCODING: utf-8
         run: pixi run lint
 
       - name: Lint Rust
@@ -34,7 +41,11 @@ jobs:
         run: pixi run test-rust
 
       - name: Test Python
+        env:
+          PYTHONIOENCODING: utf-8
         run: pixi run test
 
       - name: Speedtest
+        env:
+          PYTHONIOENCODING: utf-8
         run: pixi run speedtest
