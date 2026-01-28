@@ -1,5 +1,5 @@
 //! Integration Tests für PolyTri
-//!
+//! 
 //! Diese Tests sind von den Python-Tests abgeleitet und testen die vollständige
 //! Funktionalität der PolyTri-Implementierung.
 
@@ -31,7 +31,7 @@ fn test_easy_1() {
     let triangles = tri.get_triangles();
 
     assert!(!triangles.is_empty(), "Should have at least one triangle");
-
+    
     // Alle Dreiecke sollten gültige Indizes haben
     for triangle in &triangles {
         for &idx in triangle {
@@ -79,7 +79,7 @@ fn test_easy3() {
     let triangles = tri.get_triangles();
 
     assert!(!triangles.is_empty(), "Should have triangles");
-
+    
     // Prüfe, dass alle Dreiecke gültig sind
     for triangle in &triangles {
         assert_eq!(triangle.len(), 3, "Each triangle should have 3 vertices");
@@ -99,13 +99,13 @@ fn test_constraint_edge() {
     // Verwende nicht-kollineare Punkte
     let n = 10;
     let mut points = Vec::new();
-
+    
     // Erstelle Punkte entlang einer leicht gekrümmten Linie (nicht kollinear)
     for i in 0..n {
         let x = i as f64 / (n - 1) as f64;
         points.push(Point { x, y: x * x * 0.1 }); // Leichte Parabel
     }
-
+    
     // Füge zusätzliche Punkte hinzu
     points.push(Point { x: -1., y: 0.1 });
     points.push(Point { x: 2., y: 0.1 });
@@ -122,14 +122,14 @@ fn test_constraint_edge_2() {
     // Test mit geschlossener Boundary
     let n = 10;
     let mut points = Vec::new();
-
+    
     // Erstelle Punkte entlang einer Sinus-Kurve
     for i in 0..n {
         let x = (i as f64 / (n - 1) as f64) * std::f64::consts::PI;
         let y = x.sin().abs() - 1.1;
         points.push(Point { x, y });
     }
-
+    
     // Füge zwei zusätzliche Punkte hinzu
     points.push(Point { x: 0., y: 0. });
     points.push(Point {
@@ -141,7 +141,7 @@ fn test_constraint_edge_2() {
     let mut boundary: Vec<usize> = (0..points.len()).collect();
     boundary.push(0); // Schließe den Boundary
     let boundaries = Some(vec![boundary]);
-
+    
     // Test ohne hole removal zuerst, um sicherzustellen, dass Triangulation funktioniert
     let tri_no_holes =
         PolyTri::new(points.clone(), boundaries.clone(), false, false, None).unwrap();
@@ -206,7 +206,7 @@ fn test_hole_removal() {
     // Test mit innerem und äußerem Boundary (Circle in Circle)
     let n = 16;
     let mut points = Vec::new();
-
+    
     // Innerer Kreis
     for i in 0..n {
         let angle = 2.0 * std::f64::consts::PI * i as f64 / n as f64;
@@ -215,7 +215,7 @@ fn test_hole_removal() {
             y: 0.5 * angle.sin(),
         });
     }
-
+    
     // Äußerer Kreis
     for i in 0..n {
         let angle = 2.0 * std::f64::consts::PI * i as f64 / n as f64;
@@ -304,7 +304,7 @@ fn test_too_few_points() {
 
     let result = PolyTri::new(points, None, true, false, None);
     assert!(result.is_err(), "Should fail with too few points");
-
+    
     match result {
         Err(PolyTriError::NotEnoughPoints(n)) => {
             assert_eq!(n, 2, "Should report 2 points");
@@ -320,7 +320,7 @@ fn test_invalid_boundary_index() {
 
     let boundaries = Some(vec![vec![0, 10]]); // Index 10 existiert nicht
     let result = PolyTri::new(points, boundaries, true, false, None);
-
+    
     assert!(result.is_err(), "Should fail with invalid boundary index");
 }
 
@@ -331,7 +331,7 @@ fn test_empty_boundary() {
 
     let boundaries = Some(vec![vec![]]);
     let result = PolyTri::new(points, boundaries, true, false, None);
-
+    
     assert!(result.is_err(), "Should fail with empty boundary");
 }
 
@@ -405,7 +405,7 @@ fn test_constrain_boundaries_method() {
 
     let boundaries = Some(vec![vec![0, 1]]);
     let mut tri = PolyTri::new(points.clone(), boundaries.clone(), false, false, None).unwrap();
-
+    
     // constrain_boundaries() sollte erfolgreich sein
     let result = tri.constrain_boundaries();
     assert!(result.is_ok(), "constrain_boundaries() should succeed");
@@ -417,10 +417,10 @@ fn test_remove_empty_triangles_method() {
 
     let mut tri = PolyTri::new(points.clone(), None, true, false, None).unwrap();
     let triangles_before = tri.get_triangles().len();
-
+    
     tri.remove_empty_triangles();
     let triangles_after = tri.get_triangles().len();
-
+    
     // Sollte keine leeren Dreiecke entfernen (da keine vorhanden)
     assert_eq!(
         triangles_before, triangles_after,
@@ -433,10 +433,10 @@ fn test_flip_edges_method() {
     let points = points_from_array(&[[0., 0.], [1., 0.], [0.5, 0.5], [0., 1.]]);
 
     let mut tri = PolyTri::new(points.clone(), None, false, false, None).unwrap();
-
+    
     // flip_edges() sollte erfolgreich sein
     tri.flip_edges();
-
+    
     // Nach flip_edges sollte Delaunay-Kriterium erfüllt sein
     let triangles = tri.get_triangles();
     assert!(

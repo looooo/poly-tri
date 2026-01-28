@@ -41,7 +41,10 @@ class PolyTri(object):
             is a list of point indices forming a closed loop.
         delaunay: If True, enforce Delaunay criterion (default: True)
         holes: If True, remove triangles inside holes (default: True)
-        border: Optional list of boundary indices to use as borders for hole removal
+        border: Optional list of boundary indices. For typical applications, this
+            parameter is not needed and can be left as None. It is used for special
+            cases where specific boundaries should be treated differently during hole removal.
+            If not specified (None or empty), all boundaries are used for hole removal.
         
     Attributes:
         points: The input points (reordered internally)
@@ -614,7 +617,11 @@ class PolyTri(object):
             return False
 
     def remove_holes(self):
-        """Remove triangles inside holes defined by boundaries."""
+        """Remove triangles inside holes defined by boundaries.
+        
+        Note: The `border` parameter (if set) determines which boundaries are used.
+        For typical applications, `border` is not needed and can be left as None.
+        """
         if self._boundaries is None:
             return
         
