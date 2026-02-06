@@ -87,7 +87,3 @@ poly-tri/
 ## License
 
 See [LICENSE](LICENSE).
-
-## Acknowledgments
-
-Triangle creation is based on the approach described in [Delaunay triangulation (ActiveState Recipe)](https://code.activestate.com/recipes/579021-delaunay-triangulation/). This project adds constrained boundaries, hole removal, and non-convex support.
