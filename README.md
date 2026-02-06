@@ -70,7 +70,7 @@ triangles = tri.get_triangles()
 poly-tri/
 ├── polytri/           # Python package (PolyTri, PolyTriPy)
 ├── rust/              # Rust extension (maturin build)
-├── tests/             # pytest tests, helpers, speedtest
+├── tests/             # pytest tests, helpers; optional: speedtest (pixi run speedtest)
 ├── pixi.toml          # environment and tasks
 ├── API.md
 └── ALGORITHM.md

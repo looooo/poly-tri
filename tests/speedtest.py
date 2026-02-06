@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Speedtest script to compare Python and Rust implementations of PolyTri.
+Optional benchmark: compare Python vs Rust PolyTri performance.
+Run with: pixi run speedtest
 """
 
 import sys

@@ -44,8 +44,3 @@ jobs:
         env:
           PYTHONIOENCODING: utf-8
         run: pixi run test
-
-      - name: Speedtest
-        env:
-          PYTHONIOENCODING: utf-8
-        run: pixi run speedtest
