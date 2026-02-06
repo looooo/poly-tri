@@ -1,67 +1,54 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Test to verify points mapping issue."""
+"""Test that tri.points matches original points and triangle indices are correct."""
 
-import sys
-import os
 import numpy as np
+import pytest
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from polytri import PolyTri, PolyTriPy
-
-# Simple test with 5 points
-original_points = np.array([
+ORIGINAL_POINTS = np.array([
     [0.0, 0.0],
     [1.0, 0.0],
     [1.0, 1.0],
     [0.0, 1.0],
-    [0.5, 0.5]
+    [0.5, 0.5],
 ])
 
-# Test both implementations
-for impl_name, impl_class in [("Python", PolyTriPy), ("Rust (default)", PolyTri)]:
-    print(f"\n{'='*60}")
-    print(f"Testing {impl_name} implementation:")
-    print(f"{'='*60}")
-    print("Original points:")
-    print(original_points)
-    print()
 
-    # Create triangulation
-    try:
-        tri = impl_class(original_points, delaunay=True, holes=False)
+def _get_impl(impl_name):
+    from polytri import PolyTri, PolyTriPy, is_python_available, is_rust_available
 
-        print(f"tri.points (from {impl_name}):")
-        print(tri.points)
-        print()
+    if impl_name == "Python":
+        if not is_python_available() or PolyTriPy is None:
+            pytest.skip("Python implementation not available")
+        return PolyTriPy
+    if impl_name == "Rust":
+        if not is_rust_available():
+            pytest.skip("Rust implementation not available")
+        return PolyTri
+    raise ValueError(impl_name)
 
-        print("Are original_points and tri.points equal?")
-        are_equal = np.allclose(original_points, tri.points)
-        print(are_equal)
-        print()
 
-        if not are_equal:
-            print("ERROR: Points don't match!")
-            print("Original points shape:", original_points.shape)
-            print("tri.points shape:", tri.points.shape)
-            print()
-        else:
-            print("✓ Points match correctly!")
-            print()
+@pytest.mark.parametrize("impl_name", ["Python", "Rust"])
+def test_points_match_original(impl_name):
+    """Original points and tri.points must be equal for both implementations."""
+    impl = _get_impl(impl_name)
+    tri = impl(ORIGINAL_POINTS, delaunay=True, holes=False)
 
-        print("Triangles (indices refer to original points):")
-        triangles = tri.get_triangles()
-        for i, tri_idx in enumerate(triangles[:3]):
-            print(f"Triangle {i}: {tri_idx}")
-            print(f"  Using original_points: {original_points[tri_idx]}")
-            print(f"  Using tri.points: {tri.points[tri_idx]}")
-            # Verify that the points match
-            if np.allclose(original_points[tri_idx], tri.points[tri_idx]):
-                print(f"  ✓ Points match!")
-            else:
-                print(f"  ✗ ERROR: Points don't match!")
-    except Exception as e:
-        print(f"ERROR: {e}")
-        import traceback
-        traceback.print_exc()
+    assert np.allclose(ORIGINAL_POINTS, tri.points), (
+        f"{impl_name}: tri.points should match original points"
+    )
+
+
+@pytest.mark.parametrize("impl_name", ["Python", "Rust"])
+def test_triangle_indices_refer_to_original_points(impl_name):
+    """Triangle vertex indices must refer to original point order."""
+    impl = _get_impl(impl_name)
+    tri = impl(ORIGINAL_POINTS, delaunay=True, holes=False)
+    triangles = tri.get_triangles()
+
+    for i, tri_idx in enumerate(triangles[:3]):
+        assert np.allclose(
+            ORIGINAL_POINTS[tri_idx],
+            tri.points[tri_idx],
+        ), f"{impl_name} triangle {i}: points at indices should match tri.points"

@@ -1,7 +1,6 @@
 # Rust
 rust/target/
 rust/**/target/
-rust/rust/target/
 rust/Cargo.lock
 **/*.rs.bk
 
@@ -19,7 +18,6 @@ build/
 
 # Test outputs
 tests/*.pdf
-tests/test_results.pdf
 
 # Pixi
 .pixi/

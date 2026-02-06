@@ -15,9 +15,8 @@ PolyTri is a Python library for Delaunay triangulation with support for constrai
 
 ## Installation
 
-```bash
-pip install numpy
-```
+For development (Python + Rust extension): `pixi install` and `pixi run build`.  
+For Python only: `pip install numpy`.
 
 ## Quick Start
 

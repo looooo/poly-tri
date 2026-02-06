@@ -1,4 +1,4 @@
-# poly_tri
+# poly-tri
 
 Delaunay triangulation with constrained boundaries and hole removal.
 
@@ -13,6 +13,15 @@ Uses [1] for triangle creation and adds triangle deletion for holes and non-conv
 - Well-documented API
 
 ## Installation
+
+For development (Python + Rust extension, recommended):
+
+```bash
+pixi install
+pixi run build
+```
+
+For using only the Python implementation:
 
 ```bash
 pip install numpy
@@ -32,7 +41,9 @@ triangles = tri.get_triangles()
 
 ## Documentation
 
-For complete API documentation, see [API.md](API.md).
+- [API.md](API.md) – API reference
+- [ALGORITHM.md](ALGORITHM.md) – algorithm description
+- [polytri/README.md](polytri/README.md) – usage details, `POLYTRI_USE_RUST`, implementation notes
 
 ## Minimal Example
 
@@ -53,8 +64,20 @@ triangles = tri.get_triangles()
 
 [1] https://code.activestate.com/recipes/579021-delaunay-triangulation/
 
+## Project layout
 
-## TODO:
-cpp: delaunay not yet working  (find the bug)
-python, cpp: some cases not yet working: make more tests. 
+```
+poly-tri/
+├── polytri/           # Python package (PolyTri, PolyTriPy)
+├── rust/              # Rust extension (maturin build)
+├── tests/             # pytest tests, helpers, speedtest
+├── pixi.toml          # environment and tasks
+├── API.md
+└── ALGORITHM.md
+```
+
+## TODO
+
+- Rust: Delaunay not yet working in some cases (find the bug).
+- Python, Rust: Some edge cases not yet working; add more tests. 
 

@@ -1,6 +1,6 @@
 [workspace]
 name = "poly-tri"
-version = "0.0"
+version = "0.2.0"
 description = "triangolosierer"
 channels = ["conda-forge"]
 platforms = ["linux-64", "osx-64", "osx-arm64", "win-64"]
@@ -30,7 +30,7 @@ make = "*"
 vs2017_win-64 = "*"
 
 [tasks]
-lint = { cmd = "python -m pylint polytri.py || echo 'pylint not installed'" }
+lint = { cmd = "python -m pylint polytri || echo 'pylint not installed'" }
 build-debug = { cmd = "cd rust && maturin develop --features python" }
 build = { cmd = "cd rust && maturin develop --release --features python" }
 check = { cmd = "cd rust && cargo check" }
@@ -38,7 +38,7 @@ test-rust = { cmd = "cd rust && cargo test" }
 fmt = { cmd = "cd rust && cargo fmt" }
 lint-rust = { cmd = "cd rust && cargo clippy" }
 clean = { cmd = "cd rust && cargo clean && rm -rf target/ dist/ *.egg-info" }
-test = { cmd = "python -m pytest tests/ || python tests/test.py", depends-on = ["build"]}
+test = { cmd = "python -m pytest tests/ -v", depends-on = ["build"]}
 speedtest = { cmd = "python tests/speedtest.py", depends-on = ["build"]}
 
 [activation]

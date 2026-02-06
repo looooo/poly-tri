@@ -16,6 +16,8 @@ Usage:
     tri_py = PolyTriPy(points, boundaries=boundaries, delaunay=True)
 """
 
+from __future__ import annotations
+
 import os
 import sys
 
@@ -66,15 +68,15 @@ __all__ = [
 ]
 
 # Provide information about which implementation is being used
-def get_implementation():
+def get_implementation() -> str:
     """Return the name of the implementation being used."""
     return _implementation
 
-def is_rust_available():
+def is_rust_available() -> bool:
     """Check if Rust implementation is available."""
     return _rust_available
 
-def is_python_available():
+def is_python_available() -> bool:
     """Check if Python implementation is available."""
     return _python_available
 
@@ -82,5 +84,5 @@ def is_python_available():
 __all__.extend(["get_implementation", "is_rust_available", "is_python_available"])
 
 # Version
-__version__ = "0.1.1"
+__version__ = "0.2.0"
 

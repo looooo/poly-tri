@@ -88,7 +88,7 @@ Die Python-Version ist immer verfügbar und benötigt keine zusätzliche Install
 
 ## Entwicklung
 
-- `polytri/_rust.py` - Rust-Implementierung (wird von maturin generiert)
-- `polytri/_python.py` - Python-Implementierung
-- `polytri/__init__.py` - Package-Initialisierung mit automatischer Version-Auswahl
+- `polytri._rust` – Rust-Implementierung (von maturin als .so/.pyd gebaut)
+- `polytri/_python.py` – Python-Implementierung
+- `polytri/__init__.py` – Package-Initialisierung mit automatischer Version-Auswahl
 
